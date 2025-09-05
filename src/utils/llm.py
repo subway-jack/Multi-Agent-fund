@@ -12,8 +12,7 @@ import base64
 from PIL import Image
 from io import BytesIO 
 
-# OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-openai.api_key = OPENAI_API_KEY
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 @retry(tries=3, backoff=3, max_delay=60)
 def call_llm(
