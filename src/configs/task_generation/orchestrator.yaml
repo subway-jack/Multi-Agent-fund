@@ -1,0 +1,132 @@
+# ===================== 可运行配置模板（含中文注释） =====================
+# 说明：
+# - 这是主配置文件，供 generate_tasks_with_graph(**config) 使用。
+# - ${GROUP_SERVERS} 由分组脚本注入（某一组 MCP servers 的 JSON 列表）。
+# - 每一段都可以按需裁剪；未被代码使用的注释项不会影响运行。
+# =====================================================================
+
+meta:
+  # 纯信息说明，脚本本身不读取此块（仅方便人看）
+  plan_k: 6                 # 期望最终任务数/规划宽度（仅备注）
+  max_iter: 2               # 迭代轮数（仅备注）
+  score_threshold: 6.0      # 打分阈值（仅备注）
+  refs_per_prompt: 2        # 每个提示引用数量（仅备注）
+
+io:
+  # CLI 迁移到 YAML 后的 IO 路径配置
+  combined: "data/tools/combined_tools-50.json"   # 工具目录（整库 JSON）
+  out: "data/tasks/task.jsonl"                    # 任务输出（NDJSON，每行一个 JSON）
+  history_file: "data/tasks/task_history.txt"     # 已处理过的分组历史（去重用）
+
+graph_config:
+  # servers 由分组逻辑注入
+  servers: ${GROUP_SERVERS}
+  seeds: {}
+
+  # 版本与持久化
+  graph_version: "v1"
+  graph_out_path: "data/tasks/graphs"
+  graph_reuse: true
+
+  # schemes 与构边模式
+  graph_schemes: ["data"] # "data","context","resource","capability","lock","timing","condition"
+  graph_edge_mode: both   # schemes | io | both
+
+  # DAG 校验与剪枝
+  validate_dag: true
+  dep_whitelist_for_dag: ["data"]
+
+  # 每类 scheme 的私有配置（多数 builder 当前可留空，作为扩展位）
+  per_scheme_config: {}
+
+  # 赋权（compose 会按边上的 dep/标签聚合）
+  scheme_weights:
+    data: 10
+    context: 6
+    resource: 8
+    capability: 8
+    lock: 4
+    timing: 5
+    condition: 3
+  weight_combine: "max"   # "max" | "sum" | "avg"
+
+  # 产物增强
+  with_ir: true
+  with_adapters: true
+
+ChainSampler_config:
+  init:
+    seed_selector: random-node              # provided | random-node | top-outdeg | <自定义key>
+    seed_selector_kwargs:
+      require_outgoing: true
+
+    walk_strategy: nonbacktracking          # tools-rw | uniform | nonbacktracking | weighted | <自定义key>
+    walk_strategy_kwargs:
+      fallback_allow: true
+
+  # —— sample() 的参数：控制采样数量、长度、复现等 ——
+  sample:
+    num_walks: 5
+    max_len: 6
+    seed: 42
+    allow_revisit: false
+    # 可选：兼容老习惯
+    # start_nodes: ["Tool:search", "Type:text/plain"]
+
+chain_selector_config:
+  # 全局处理：去重 -> 静态校验 -> 打分 -> MMR 选择（ChainSelector.select）
+  k: 10                 # 输出的链条数量（最终候选）
+  dedupe: true          # 是否去除完全相同的序列
+  mmr_lambda: 0.6       # MMR 的相关性/多样性权衡：0.6 偏相关性，0.4 偏多样性
+  log_intermediate: true # 是否打印阶段性统计（去重后/校验后/打分后/选择后）
+
+  # 仅当校验函数支持这些可选参数时才会生效（validate_chain_static 可扩展）
+  require_sink: true    # 要求链尾是“汇点”（sink）；依据 ToolIR.is_sink
+  dep_filter: null      # 若设为 "data"，则仅接受边 dep=="data" 的链（不满足则判无效）
+
+  # 速度/计算剪枝
+  top_n_score: 200      # 仅取打分前 N 高的链进入 MMR 选择；null = 不截断
+
+task_crafter_config:
+  # TaskCraft：原子→深度→宽度（TaskCrafter.craft）
+  # --- 原子 ---
+  dedupe_atomics: true     # 原子任务去重
+  limit_atomics: null      # 限制原子任务个数（int），null = 不限
+
+  # --- 深度（回归目标，补齐依赖工具）---
+  dedupe_depth_drafts: true
+  limit_drafts: null       # 限制深度扩展后的草案个数（int），null = 不限
+
+  # --- 宽度（并行装饰/合成/对比等）---
+  do_width: true
+  width_pattern: "decorate"  # "decorate" | "and" | "filter" | "compare" | "aggregate"
+  bucket_by: "tail"          # "tail" 按尾工具分桶；或 "topic" 按主题分桶（需你的实现支持）
+
+  # 调试
+  return_intermediate: true  # 返回 atomics/drafts 等中间产物便于排查
+
+task_verification_config:
+  # 验证 → 结构干跑 → 最小修复（TaskVerifier.process）
+  do_shadow: true           # 是否进行结构干跑（不真正调接口，仅检查结构/绑定）
+  max_repair_iters: 1       # 每条任务允许尝试的最小修复次数
+  return_intermediate: true # 返回验证阶段的详细报告（通过/失败原因/修复记录）
+  shadow_cache: {}          # 干跑结构缓存（跨任务复用）
+  log_intermediate: true    # 打印验证阶段统计
+
+registry_config:
+  # 排序与落盘（TaskRegistrar.finalize）
+  mmr_lambda: 0.6           # 任务层面的 MMR 参数（若排名使用 MMR，可与上游不同）
+
+  # 输出存储
+  out_dir: "data/tasks"     # 输出目录
+  filename_base: "tasks"    # 基础文件名（如 tasks-<version>.jsonl）
+  version_tag: null         # 版本标签；null 则用时间戳（如 20250815-120000）
+
+  # 行为开关
+  do_store: true            # 是否真实写盘（false 时仅返回内存对象）
+  return_intermediate: true # 返回排序/落盘阶段的调试数据
+
+# 可选：若你的 ChainSampler.sample 或 TaskCrafter.craft 支持额外的 TaskCraft 控制，可传入：
+# task_craft_config:
+#   allow_multi_goal: true  # 是否允许一个草案内有多个并列目标
+#   max_branches: 3         # 宽度扩展时的最大分支数
