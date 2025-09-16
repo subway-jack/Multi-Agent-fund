@@ -1,172 +1,272 @@
-# Agentic World Model
+# 🎮 AI股票交易模拟器
 
-The Agentic World Model (AWM) library provides an end‑to‑end pipeline for generating, executing, and evaluating code‑world models (CWMs) that serve as interactive environments for both the CWMB and ByteSized32 benchmarks. It is designed to test large‑language‑model planning agents on in‑context code generation tasks in a reproducible, gym‑style fashion.
+一个功能完整的股票交易模拟器，您可以作为庄家操控市场，观察50个做多和50个做空的AI交易者的行为。该系统提供了完整的自动化交易脚本和多种显示界面，是学习量化交易和市场机制的理想工具。
 
-## Directory Overview
+## ✨ 核心特色
 
-**🛠️ code-world-models/**  
-├─ **📄 data/prompts/**      – Predefined prompts for 18 Gymnasium environments  
-└─ **⚙️ src/experiments/**  – Driver scripts for AWM and Baseline-MCTS pipelines  
+### 🤖 智能交易系统
+- **100个AI交易者**: 50个做多交易者 + 50个做空交易者
+- **多种交易策略**: 技术分析、趋势跟踪、均值回归等
+- **智能风险管理**: 自动止盈止损、仓位控制
+- **实时决策引擎**: 基于市场数据的实时交易决策
 
-**📝 ByteSized32/**  
-├─ **📊 data/**             – CSV experiment definitions and benchmark specs  
-└─ **🔧 scripts/**          – Helper scripts for code generation, reflection, and evaluation  
+### 🎯 庄家操控功能
+- **市场操控**: 设置市场趋势、波动率、直接操控股价
+- **大单交易**: 创建大额买卖单影响市场
+- **市场事件**: 触发市场崩盘、暴涨等极端事件
+- **实时监控**: 查看所有交易者的表现和市场状态
 
-**🤖 src/**  
-├─ **🔬 deep_research_agent/**   – “Deep Research” agent implementation  
-└─ **🌐 agentic_world_model/**   – Core Agentic World Model logic  
+### 📊 多样化界面
+- **🌐 Web界面**: 现代化的Streamlit Web UI（推荐）
+- **🖥️ GUI界面**: 基于Pygame的桌面应用
+- **💻 命令行界面**: 传统终端交互模式
+- **📈 实时可视化**: 价格走势、成交量、订单簿深度图表
 
-**📈 results/**  
-– Auto-generated CWMs, episode logs, and analysis artifacts  
+### 💹 完整交易系统
+- **订单撮合引擎**: 完整的买卖订单匹配系统
+- **价格发现机制**: 基于供需关系的价格形成
+- **技术指标分析**: RSI、移动平均线、布林带等
+- **市场数据管理**: 实时更新的K线数据和交易记录
 
-# Quick‑Start
+## 🚀 快速开始
 
-## Installation
+### 环境要求
+- Python 3.8+
+- 推荐使用虚拟环境
 
+### 安装依赖
 ```bash
-conda create -n agenticworldmodel python=3.10
-conda activate agenticworldmodel
-pip install -r requirements.txt 
-(cd ByteSized32 && pip install -e .)
-(cd code-world-models/RTFM && pip install -e .)
+# 克隆项目
+git clone <repository-url>
+cd Multi-Agent-fund
+
+# 安装依赖
+pip install -r requirements.txt
 ```
 
-## Generate a CWMB Environment
+### 启动应用
 
-### Agentic World Model (AWM)
-
+#### 方式一：通用启动器（推荐）
 ```bash
-# Generate CWMs for env indices 0,1,2
-python3 code-world-models/src/experiments/run_agentic_world_model_cwm.py \
---idx 0,1,2\
---model "deep research" \
---save_dir "results/cwm/agentic_world_model"
+python scripts/run.py
+```
+然后选择您喜欢的界面模式：
+1. 🌐 Web界面 - 现代化Web UI
+2. 🖥️ GUI界面 - 桌面应用界面  
+3. 💻 命令行界面 - 传统终端交互
+
+#### 方式二：直接启动特定界面
+```bash
+# Web界面（推荐）
+python scripts/run_web.py
+
+# GUI桌面应用
+python scripts/run_gui.py
+
+# 命令行界面
+python scripts/run_cli.py
 ```
 
-*Omit `--idx` and `--env` to process all 18 default tasks.*
+## 🎮 庄家控制台命令
 
-### Baseline-MCTS
+### 基本命令
+- `status` - 显示市场状态
+- `report` - 生成详细市场报告
+- `traders` - 显示交易者统计
+- `help` - 显示帮助信息
+- `quit/exit` - 退出程序
 
+### 市场操控命令
+- `trend <值>` - 设置市场趋势 (-1到1)
+  ```bash
+  trend 0.5    # 设置上涨趋势
+  trend -0.3   # 设置下跌趋势
+  ```
+
+- `manipulate <股票> <强度>` - 操控特定股票价格
+  ```bash
+  manipulate AAPL 0.4   # 拉升苹果股价
+  manipulate TSLA -0.6  # 打压特斯拉股价
+  ```
+
+- `volatility <值>` - 设置市场波动率 (0.001到0.1)
+  ```bash
+  volatility 0.05  # 设置5%波动率
+  ```
+
+### 市场事件命令
+- `crash <强度>` - 触发市场崩盘 (0到1)
+- `surge <强度>` - 触发市场暴涨 (0到1)
+- `noise <强度>` - 增加市场噪音 (0到1)
+- `reset` - 重置所有控制参数
+
+### 庄家交易命令
+- `buy <股票> <数量> [价格偏移]` - 庄家买入
+- `sell <股票> <数量> [价格偏移]` - 庄家卖出
+
+### 可视化命令
+- `chart` - 启动实时图表界面
+- `snapshot` - 保存当前图表快照
+
+## 📊 交易标的
+
+系统包含5只模拟股票：
+- **AAPL** - 苹果公司 (初始价格: $150)
+- **TSLA** - 特斯拉 (初始价格: $200)
+- **GOOGL** - 谷歌 (初始价格: $2500)
+- **MSFT** - 微软 (初始价格: $300)
+- **AMZN** - 亚马逊 (初始价格: $3200)
+
+## 🤖 AI交易策略
+
+### 做多交易者 (Bull Traders)
+- 寻找上涨机会，低买高卖
+- 使用技术指标：RSI、移动平均线、布林带
+- 智能风险管理：止盈止损、仓位控制
+
+### 做空交易者 (Bear Traders)
+- 寻找下跌机会，高卖低买
+- 反向操作策略，从价格下跌中获利
+- 同样使用技术分析和风险管理
+
+## 📈 使用场景示例
+
+### 场景1: 制造牛市
 ```bash
-# Generate CWMs for env indices 0,1
-python3 code-world-models/src/experiments/run_mcts_cwm.py \
---idx 0,1 \
---model gpt-4.1 \
---save_dir "results/cwm/mcts"
+# 设置上涨趋势
+trend 0.7
+
+# 降低波动率，让上涨更稳定
+volatility 0.02
+
+# 拉升热门股票
+manipulate AAPL 0.5
+manipulate TSLA 0.4
+
+# 查看效果
+status
 ```
 
-## Evaluate Planning Performance
-
-After CWMs are generated, evaluate how well each planner solves the tasks.
-
-### Agentic World Model (AWM)
-
+### 场景2: 触发市场恐慌
 ```bash
-python code-world-models/src/experiments/eval_planning.py \
---save_dir results/awm \
---experiment_name "agentic_world_model" \
---n_episodes 10
+# 触发市场崩盘
+crash 0.6
+
+# 增加市场噪音
+noise 0.4
+
+# 设置下跌趋势
+trend -0.8
+
+# 观察交易者反应
+traders
 ```
 
-- `--save_dir` Point to the directory where the CWM JSONs were saved.
-- `--experiment_name` Name of the method or model that generated the code environments to be evaluated.
-- `--n_episodes` controls how many episodes to run per environment (default here: 10).
-
-### Baseline-MCTS
-
+### 场景3: 庄家操作
 ```bash
-python code-world-models/src/experiments/eval_planning.py \
---save_dir results/mcts \
---experiment_name "mcts" \
---n_episodes 10
+# 先拉升股价
+manipulate AAPL 0.8
+
+# 等待散户跟风
+status
+
+# 大量卖出获利
+sell AAPL 5000
+
+# 制造恐慌
+crash 0.4
 ```
 
-## Analyze Results
+## 🔧 技术架构
 
-To get a detailed analysis of the evaluation results, including success rates and average scores, run the analysis script:
+### 核心模块
+- **models.py** - 数据模型定义（股票、订单、交易者等）
+- **price_engine.py** - 价格模拟引擎（价格生成、技术指标）
+- **ai_traders.py** - AI交易者实现（交易策略、决策逻辑）
+- **trading_system.py** - 交易撮合系统（订单匹配、成交处理）
+- **banker_interface.py** - 庄家操作界面（市场操控、大单交易）
+- **visualization.py** - 可视化系统（实时图表、数据展示）
 
+### 界面模块
+- **streamlit_app.py** - Web界面（Streamlit）
+- **gui_interface.py** - 桌面GUI界面（Pygame）
+- **apps/main.py** - 命令行界面主程序
+
+### 配置系统
+- **config_manager.py** - 配置管理器
+- **defaults.py** - 默认配置参数
+- **user_config.json** - 用户自定义配置
+
+### 设计特点
+- **模块化设计**: 各功能模块独立，易于扩展
+- **实时处理**: 多线程架构，实时更新市场数据
+- **可配置性**: 丰富的配置选项，支持个性化定制
+- **多界面支持**: Web、GUI、CLI三种界面模式
+
+## 📚 学习价值
+
+通过这个模拟器，您可以：
+- **理解市场机制**: 深入了解股票市场的运作原理
+- **观察交易行为**: 研究不同市场条件下的交易者行为
+- **学习技术分析**: 掌握各种技术指标的应用
+- **体验庄家操作**: 了解庄家如何影响市场价格
+- **量化交易入门**: 为量化交易策略开发打基础
+
+## ⚙️ 配置说明
+
+系统支持丰富的配置选项，可通过 `src/config/user_config.json` 文件进行自定义：
+
+- **市场参数**: 波动率、趋势强度、价格更新频率
+- **交易者参数**: 风险偏好、决策间隔、交易金额限制
+- **技术指标**: RSI周期、移动平均线参数、布林带设置
+- **界面设置**: 更新频率、显示精度、颜色主题
+
+## 🚨 免责声明
+
+- 这是一个**教育性质**的模拟器，不构成投资建议
+- 真实市场比模拟器**复杂得多**
+- 请勿将模拟结果直接应用于真实交易
+- **投资有风险，入市需谨慎**
+
+## 🤝 贡献指南
+
+欢迎提交Issue和Pull Request来改进这个项目！
+
+### 开发环境设置
 ```bash
-python3 code-world-models/analyze_results.py \
-code-world-models/results/cwm/results.json
+# 克隆项目
+git clone <repository-url>
+cd Multi-Agent-fund
+
+# 创建虚拟环境
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# 或
+venv\Scripts\activate  # Windows
+
+# 安装开发依赖
+pip install -r requirements.txt
 ```
 
-## Experiments with bytesized32
-
-### Code Generation
-
-With the generated CSV files, run the following to generate code for each experiment:
-
-#### Agentic World Model (AWM)
-
-```bash
-python ByteSized32/scripts/run_code_generate_agentic_world_model.py ByteSized32/data/experiment_action.csv \
-  --output-folder results/bytes32/agentic_world_model \
-  --model gpt-4.1
-
-python ByteSized32/scripts/run_code_generate_agentic_world_model.py ByteSized32/data/experiment_distractor.csv \
-  --output-folder results/bytes32/agentic_world_model \
-  --model gpt-4.1
-
-python ByteSized32/scripts/run_code_generate_agentic_world_model.py ByteSized32/data/experiment_object.csv \
-  --output-folder results/bytes32/agentic_world_model \
-  --model gpt-4.1
+### 项目结构
+```
+Multi-Agent-fund/
+├── apps/                 # 应用程序入口
+├── scripts/             # 启动脚本
+├── src/                 # 源代码
+│   ├── core/           # 核心业务逻辑
+│   ├── interfaces/     # 用户界面
+│   ├── models/         # 数据模型
+│   ├── config/         # 配置管理
+│   └── utils/          # 工具函数
+├── test/               # 测试代码
+└── requirements.txt    # 依赖列表
 ```
 
-#### Baseline-code
+## 📄 许可证
 
-```bash
-python ByteSized32/scripts/run_code_generation.py ByteSized32/data/experiment_action.csv \
-  --output-folder results/bytes32/code \
-  --model gpt-4.1
+本项目采用 MIT 许可证，详见 [LICENSE](LICENSE) 文件。
 
-python ByteSized32/scripts/run_code_generation.py ByteSized32/data/experiment_distractor.csv \
-  --output-folder results/bytes32/code \
-  --model gpt-4.1
+---
 
-python ByteSized32/scripts/run_code_generation.py ByteSized32/data/experiment_object.csv \
-  --output-folder results/bytes32/code \
-  --model gpt-4.1
-```
-
-### Code Reflection
-
-Some generated games may not be valid Python code. Use the following script to perform self-reflection and improve code validity:
-
-```bash
-python scripts/run_code_reflection.py --game-folder results/run/generated_games/ \
-  --revision-folder results/run/revised_games/
-```
-
-### Automatic Evaluation
-
-The codebase supports automatic evaluation of the generated games based on the following metrics:
-
-- Technical Validity: Whether the game is valid Python code with the expected classes and methods.
-- Specification Compliance: Whether the required actions, objects, and distractors are present as specified in the experiment file.
-- Physical Reality Alignment: Whether the game correctly models constraints of the physical world.
-- Game Winnability: Whether a winning sequence of actions exists.
-
-#### Agentic World Model (AWM)
-
-```bash
-python ByteSized32/scripts/run_code_evaluation.py \
---game-folder results/bytes32/agentic_world_model \
---results-file "results/bytes32/eval_agentic_results.json"
-```
-
-#### Baseline-code
-
-```bash
-python ByteSized32/scripts/run_code_evaluation.py \
-  --game-folder results/bytes32/code \
-  --results-file "results/bytes32/eval_code_results.json"
-```
-
-### Visualize Results
-
-```bash
-python scripts/make_table2.py --results results/bytes32/eval_agentic_results.json
-python scripts/make_table3.py --results results/bytes32/eval_agentic_results.json
-python scripts/make_figure4.py --results results/bytes32/eval_agentic_results.json
-```
-# Test change
+**🎯 开始您的量化交易之旅吧！**

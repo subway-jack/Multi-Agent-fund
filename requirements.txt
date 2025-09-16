@@ -169,3 +169,6 @@ websockets==15.0.1
 wheel==0.43.0
 yarl==1.20.1
 zipp==3.17.0
+matplotlib>=3.5.0
+numpy>=1.21.0
+pygame>=2.1.0

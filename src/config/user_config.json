@@ -1,0 +1,8 @@
+{
+  "user": {
+    "initial_balance": 500000.0,
+    "commission_rate": 0.0002,
+    "min_commission": 3.0,
+    "stamp_tax_rate": 0.001
+  }
+}
