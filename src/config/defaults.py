@@ -65,7 +65,7 @@ TRADER_CONFIG = {
     'stop_loss_max': 0.1  # 最大止损
 }
 
-# 技术指标配置
+# 技术分析配置
 TECHNICAL_CONFIG = {
     'rsi_period': 14,  # RSI周期
     'sma_short_period': 5,  # 短期移动平均周期
@@ -73,6 +73,31 @@ TECHNICAL_CONFIG = {
     'bollinger_period': 20,  # 布林带周期
     'bollinger_std_dev': 2,  # 布林带标准差倍数
     'price_history_length': 30  # 价格历史长度
+}
+
+# 币安API配置
+BINANCE_CONFIG = {
+    'api_key': os.getenv('BINANCE_API_KEY', ''),  # 币安API密钥
+    'api_secret': os.getenv('BINANCE_API_SECRET', ''),  # 币安API密钥
+    'testnet': True,  # 是否使用测试网络
+    'base_url': 'https://api.binance.com',  # API基础URL
+    'testnet_url': 'https://testnet.binance.vision',  # 测试网络URL
+    'timeout': 10,  # 请求超时时间(秒)
+    'symbols': [  # 支持的交易对
+        'BTCUSDT',  # 比特币/USDT
+        'ETHUSDT',  # 以太坊/USDT
+        'BNBUSDT',  # 币安币/USDT
+        'ADAUSDT',  # 卡尔达诺/USDT
+        'SOLUSDT',  # Solana/USDT
+        'XRPUSDT',  # 瑞波币/USDT
+        'DOTUSDT',  # 波卡/USDT
+        'DOGEUSDT', # 狗狗币/USDT
+        'AVAXUSDT', # 雪崩/USDT
+        'MATICUSDT' # Polygon/USDT
+    ],
+    'price_update_interval': 5,  # 价格更新间隔(秒)
+    'enable_real_data': False,  # 是否启用真实数据
+    'fallback_to_mock': True  # 当API失败时是否回退到模拟数据
 }
 
 # 交易系统配置

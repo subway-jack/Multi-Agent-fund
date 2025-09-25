@@ -48,6 +48,7 @@ google-auth==2.40.3
 google-genai==1.24.0
 gym==0.22.0
 gym-notices==0.0.8
+python-binance==1.0.19
 gymnasium==1.2.0
 h11==0.16.0
 hf-xet==1.1.5

@@ -3,8 +3,9 @@ import math
 import time
 import numpy as np
 from typing import List, Dict, Tuple
-from src.models.models import Stock, MarketData
+from qbot.models.models import Stock, MarketData
 from src.config.config_manager import config_manager
+from src.core.binance_client import binance_client
 
 class PriceEngine:
     """价格引擎 - 负责生成和管理股票价格变动"""
@@ -33,6 +34,119 @@ class PriceEngine:
         self.last_kline_update = {}  # 记录每只股票最后更新时间
         self.volume_sensitivity = 0.01  # 成交量敏感度 - 增加交易量对价格的影响
         
+        # 币安API集成
+        self.binance_client = binance_client
+        self.use_real_data = self.binance_client.is_enabled()
+        self.crypto_symbols = self.binance_client.get_supported_symbols()
+        self.last_binance_update = 0
+        self.binance_update_interval = config_manager.get_config().get('binance', {}).get('price_update_interval', 5)
+        
+        print(f"🔗 价格引擎初始化完成，币安API: {'启用' if self.use_real_data else '禁用'}")
+        if self.use_real_data:
+            print(f"📊 支持的加密货币: {', '.join(self.crypto_symbols)}")
+    
+    def is_crypto_symbol(self, symbol: str) -> bool:
+        """检查是否为加密货币交易对"""
+        return symbol in self.crypto_symbols
+    
+    def get_real_crypto_price(self, symbol: str) -> float:
+        """获取真实的加密货币价格"""
+        if not self.use_real_data or not self.is_crypto_symbol(symbol):
+            return None
+        
+        try:
+            price = self.binance_client.get_symbol_price(symbol)
+            if price is not None:
+                print(f"💰 获取 {symbol} 真实价格: ${price:.4f}")
+            return price
+        except Exception as e:
+            print(f"❌ 获取 {symbol} 价格失败: {e}")
+            return None
+    
+    def update_crypto_prices(self):
+        """批量更新加密货币价格"""
+        if not self.use_real_data:
+            return
+        
+        current_time = time.time()
+        if current_time - self.last_binance_update < self.binance_update_interval:
+            return
+        
+        try:
+            # 批量获取所有加密货币价格
+            prices = self.binance_client.get_all_prices()
+            
+            for symbol, price in prices.items():
+                if symbol in self.market_data.stocks:
+                    # 更新现有股票的价格
+                    old_price = self.market_data.stocks[symbol].current_price
+                    self.market_data.update_price(symbol, price)
+                    print(f"📈 更新 {symbol}: ${old_price:.4f} → ${price:.4f}")
+                else:
+                    # 添加新的加密货币
+                    self.add_crypto_stock(symbol, price)
+            
+            self.last_binance_update = current_time
+            print(f"🔄 批量更新了 {len(prices)} 个加密货币价格")
+            
+        except Exception as e:
+            print(f"❌ 批量更新加密货币价格失败: {e}")
+    
+    def add_crypto_stock(self, symbol: str, price: float):
+        """添加新的加密货币到市场数据"""
+        try:
+            # 创建加密货币名称映射
+            crypto_names = {
+                'BTCUSDT': '比特币',
+                'ETHUSDT': '以太坊',
+                'BNBUSDT': '币安币',
+                'ADAUSDT': '卡尔达诺',
+                'SOLUSDT': 'Solana',
+                'XRPUSDT': '瑞波币',
+                'DOTUSDT': '波卡',
+                'DOGEUSDT': '狗狗币',
+                'AVAXUSDT': '雪崩',
+                'MATICUSDT': 'Polygon'
+            }
+            
+            name = crypto_names.get(symbol, symbol)
+            
+            # 生成一些历史价格数据
+            price_history = []
+            base_price = price
+            for i in range(30):
+                variation = random.uniform(-0.05, 0.05)
+                historical_price = base_price * (1 + variation)
+                price_history.append(round(historical_price, 4))
+                base_price = historical_price
+            
+            # 添加到市场数据
+            self.market_data.add_stock(symbol, name, price, price_history)
+            print(f"➕ 添加新加密货币: {name} ({symbol}) - ${price:.4f}")
+            
+        except Exception as e:
+            print(f"❌ 添加加密货币 {symbol} 失败: {e}")
+    
+    def add_new_crypto_stock(self, symbol: str, price: float):
+        """添加新的加密货币股票到市场数据"""
+        if symbol not in self.market_data.stocks:
+            # 导入Stock类
+            from qbot.models.models import Stock
+            
+            # 创建新的股票对象
+            stock = Stock()
+            stock.symbol = symbol
+            stock.name = f"Cryptocurrency {symbol}"
+            stock.current_price = price
+            stock.open_price = price
+            stock.high_price = price
+            stock.low_price = price
+            stock.volume = 0
+            stock.price_history = [price]  # 初始化价格历史
+            
+            self.market_data.add_stock(stock)
+            print(f"✅ 添加新的加密货币: {symbol} 价格: ${price:.4f}")
+
     def generate_price_movement(self, current_price: float, symbol: str = None, time_step: float = 1.0) -> float:
         """生成价格变动
         
@@ -80,7 +194,24 @@ class PriceEngine:
         current_time = time.time()
         time_delta = current_time - self.last_update_time
         
+        # 首先更新加密货币价格（如果启用了币安API）
+        self.update_crypto_prices()
+        
         for symbol, stock in self.market_data.stocks.items():
+            # 如果是加密货币且启用了真实数据，尝试获取真实价格
+            if self.is_crypto_symbol(symbol) and self.use_real_data:
+                real_price = self.get_real_crypto_price(symbol)
+                if real_price is not None:
+                    # 使用真实价格，但仍然应用一些交易影响
+                    trade_impact = 0.0
+                    if symbol in self.trade_impacts:
+                        trade_impact = self.trade_impacts[symbol] * 0.1  # 减少对真实价格的影响
+                    
+                    adjusted_price = real_price * (1 + trade_impact)
+                    self.market_data.update_price(symbol, adjusted_price)
+                    continue
+            
+            # 对于传统股票或无法获取真实价格的情况，使用模拟价格生成
             new_price = self.generate_price_movement(stock.current_price, symbol, time_delta)
             self.market_data.update_price(symbol, new_price)
         

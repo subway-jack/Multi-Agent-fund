@@ -4,7 +4,7 @@ import os
 from typing import Dict, Any
 from .defaults import (
     MARKET_CONFIG, TRADER_CONFIG, TECHNICAL_CONFIG, 
-    TRADING_CONFIG, UI_CONFIG, USER_CONFIG
+    TRADING_CONFIG, UI_CONFIG, USER_CONFIG, BINANCE_CONFIG
 )
 
 class ConfigManager:
@@ -21,7 +21,8 @@ class ConfigManager:
             'technical': TECHNICAL_CONFIG.copy(),
             'trading': TRADING_CONFIG.copy(),
             'ui': UI_CONFIG.copy(),
-            'user': USER_CONFIG.copy()
+            'user': USER_CONFIG.copy(),
+            'binance': BINANCE_CONFIG.copy()
         }
         self.load_config()
     
