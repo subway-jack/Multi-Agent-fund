@@ -1,0 +1,32 @@
+{
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8000,
+    "reload": true,
+    "log_level": "info"
+  },
+  "binance": {
+    "base_ws_url": "wss://stream.binance.com:9443/ws/",
+    "reconnect_delay": 5,
+    "max_retries": 5,
+    "heartbeat_interval": 30
+  },
+  "ui": {
+    "window_width": 1400,
+    "window_height": 800,
+    "chart_max_points": 1000,
+    "update_interval": 100,
+    "default_symbols": [
+      "BTCUSDT",
+      "ETHUSDT",
+      "BNBUSDT",
+      "ADAUSDT",
+      "XRPUSDT",
+      "SOLUSDT",
+      "DOTUSDT",
+      "DOGEUSDT",
+      "AVAXUSDT",
+      "SHIBUSDT"
+    ]
+  }
+}

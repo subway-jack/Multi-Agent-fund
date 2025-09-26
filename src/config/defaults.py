@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
 
+import os
+from dotenv import load_dotenv
+
+# 加载环境变量
+load_dotenv()
+
 # 字体大小设置
 FONT_SIZE_SMALL = 16
 FONT_SIZE_BIG = 24
@@ -79,7 +85,7 @@ TECHNICAL_CONFIG = {
 BINANCE_CONFIG = {
     'api_key': os.getenv('BINANCE_API_KEY', ''),  # 币安API密钥
     'api_secret': os.getenv('BINANCE_API_SECRET', ''),  # 币安API密钥
-    'testnet': True,  # 是否使用测试网络
+    'testnet': False,  # 是否使用测试网络（改为False使用真实网络）
     'base_url': 'https://api.binance.com',  # API基础URL
     'testnet_url': 'https://testnet.binance.vision',  # 测试网络URL
     'timeout': 10,  # 请求超时时间(秒)
@@ -96,7 +102,7 @@ BINANCE_CONFIG = {
         'MATICUSDT' # Polygon/USDT
     ],
     'price_update_interval': 5,  # 价格更新间隔(秒)
-    'enable_real_data': False,  # 是否启用真实数据
+    'enable_real_data': True,  # 启用真实数据（改为True）
     'fallback_to_mock': True  # 当API失败时是否回退到模拟数据
 }
 

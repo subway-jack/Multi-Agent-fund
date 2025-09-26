@@ -173,3 +173,10 @@ zipp==3.17.0
 matplotlib>=3.5.0
 numpy>=1.21.0
 pygame>=2.1.0
+# 新增依赖包
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+PySide6==6.8.1
+pyqtgraph==0.13.7
+websocket-client==1.8.0
+python-multipart==0.0.20

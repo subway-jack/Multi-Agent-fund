@@ -1,0 +1,1 @@
+# Frontend module for PySide6 GUI application
